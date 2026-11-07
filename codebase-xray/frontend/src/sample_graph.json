@@ -1,0 +1,100 @@
+{
+  "project_id": "sample",
+  "stats": {
+    "files": 5,
+    "functions": 6,
+    "calls": 4,
+    "unused": 1,
+    "skipped_files": []
+  },
+  "nodes": [
+    {
+      "id": "main.py::main",
+      "name": "main",
+      "file": "main.py",
+      "class_name": null,
+      "start_line": 5,
+      "end_line": 7,
+      "code": "def main():\n    user = login()\n    process_payment(user)\n",
+      "is_entry_point": true,
+      "is_unused": false
+    },
+    {
+      "id": "auth.py::login",
+      "name": "login",
+      "file": "auth.py",
+      "class_name": null,
+      "start_line": 4,
+      "end_line": 5,
+      "code": "def login():\n    return get_user()\n",
+      "is_entry_point": false,
+      "is_unused": false
+    },
+    {
+      "id": "payment.py::process_payment",
+      "name": "process_payment",
+      "file": "payment.py",
+      "class_name": null,
+      "start_line": 4,
+      "end_line": 5,
+      "code": "def process_payment(user):\n    return calculate_total(100, 10)\n",
+      "is_entry_point": false,
+      "is_unused": false
+    },
+    {
+      "id": "database.py::get_user",
+      "name": "get_user",
+      "file": "database.py",
+      "class_name": null,
+      "start_line": 1,
+      "end_line": 2,
+      "code": "def get_user():\n    return {\"name\": \"Alex\"}\n",
+      "is_entry_point": false,
+      "is_unused": false
+    },
+    {
+      "id": "utils.py::calculate_total",
+      "name": "calculate_total",
+      "file": "utils.py",
+      "class_name": null,
+      "start_line": 1,
+      "end_line": 2,
+      "code": "def calculate_total(price, tax):\n    return price + tax\n",
+      "is_entry_point": false,
+      "is_unused": false
+    },
+    {
+      "id": "utils.py::unused_function",
+      "name": "unused_function",
+      "file": "utils.py",
+      "class_name": null,
+      "start_line": 5,
+      "end_line": 6,
+      "code": "def unused_function():\n    return \"Not used\"\n",
+      "is_entry_point": false,
+      "is_unused": true
+    }
+  ],
+  "edges": [
+    {
+      "source": "main.py::main",
+      "target": "auth.py::login",
+      "type": "calls"
+    },
+    {
+      "source": "main.py::main",
+      "target": "payment.py::process_payment",
+      "type": "calls"
+    },
+    {
+      "source": "auth.py::login",
+      "target": "database.py::get_user",
+      "type": "calls"
+    },
+    {
+      "source": "payment.py::process_payment",
+      "target": "utils.py::calculate_total",
+      "type": "calls"
+    }
+  ]
+}
