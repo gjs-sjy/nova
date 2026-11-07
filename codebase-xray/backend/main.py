@@ -3,6 +3,7 @@ main.py — the FastAPI web server.
 
 Endpoints so far:
   POST /upload   upload a .zip of a Python project, get back the dependency graph
+  POST /impact   for one function: who calls it, what it calls, what could break
 
 Run from backend/:
     uvicorn main:app --reload --port 8000
@@ -18,9 +19,10 @@ import zipfile
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 from extractor import extract_project
-from graph_builder import build_graph, graph_to_json
+from graph_builder import build_graph, get_impact, graph_to_json
 
 MAX_UPLOAD_BYTES = 20 * 1024 * 1024        # 20 MB zip file
 MAX_UNZIPPED_BYTES = 200 * 1024 * 1024     # stop "zip bombs" that expand to huge sizes
@@ -99,3 +101,20 @@ async def upload(file: UploadFile = File(...)):
         "nodes": {node["id"]: node for node in result["nodes"]},
     }
     return result
+
+
+# The request body for /impact. IDs go in the JSON body (not the URL)
+# because they contain "::" and "/".
+class NodeRequest(BaseModel):
+    project_id: str
+    node_id: str
+
+
+@app.post("/impact")
+def impact(request: NodeRequest):
+    project = PROJECTS.get(request.project_id)
+    if project is None:
+        raise HTTPException(404, "Project not found. Upload a .zip first.")
+    if request.node_id not in project["graph"]:
+        raise HTTPException(404, f"Function not found: {request.node_id}")
+    return get_impact(project["graph"], request.node_id)
