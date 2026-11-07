@@ -1,0 +1,8 @@
+codebase-xray/CLAUDE.md
+.env
+venv/
+__pycache__/
+*.pyc
+node_modules/
+dist/
+.DS_Store
