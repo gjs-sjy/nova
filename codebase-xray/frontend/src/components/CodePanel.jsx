@@ -1,5 +1,5 @@
-// Side panel showing the clicked function: its code, who calls it, and what it calls.
-// (The two AI buttons get added in Milestone 6.)
+// Side panel showing the clicked function: its code, who calls it, what it calls,
+// and two buttons that ask the AI to explain it.
 
 function shortName(nodeId) {
   return nodeId.split("::")[1] + "()"; // "utils.py::calculate_total" -> "calculate_total()"
@@ -24,7 +24,7 @@ function IdList({ title, ids, color }) {
   );
 }
 
-function CodePanel({ node, impact, loading, error }) {
+function CodePanel({ node, impact, loading, error, aiAnswer, aiLoading, onAsk }) {
   if (!node) {
     return <div style={panelStyle}>Click a function in the graph to see its code.</div>;
   }
@@ -40,6 +40,34 @@ function CodePanel({ node, impact, loading, error }) {
         {node.is_entry_point && <span style={{ color: "#22c55e" }}> · entry point</span>}
         {node.is_unused && <span style={{ color: "#ef4444" }}> · unused</span>}
       </div>
+
+      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+        <button style={buttonStyle} disabled={aiLoading} onClick={() => onAsk("explain")}>
+          Explain this
+        </button>
+        <button
+          style={{ ...buttonStyle, background: "#b91c1c" }}
+          disabled={aiLoading}
+          onClick={() => onAsk("impact")}
+        >
+          What breaks if I delete this?
+        </button>
+      </div>
+      {aiLoading && <div style={{ marginTop: 8 }}>Asking the AI…</div>}
+      {aiAnswer && (
+        <div
+          style={{
+            marginTop: 8,
+            padding: 12,
+            background: "#334155",
+            borderRadius: 6,
+            whiteSpace: "pre-wrap",
+            lineHeight: 1.4,
+          }}
+        >
+          {aiAnswer}
+        </div>
+      )}
 
       <pre
         style={{
@@ -71,6 +99,17 @@ function CodePanel({ node, impact, loading, error }) {
     </div>
   );
 }
+
+const buttonStyle = {
+  flex: 1,
+  padding: "8px 10px",
+  border: "none",
+  borderRadius: 6,
+  background: "#2563eb",
+  color: "white",
+  fontWeight: "bold",
+  cursor: "pointer",
+};
 
 const panelStyle = {
   width: 380,

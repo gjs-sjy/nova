@@ -4,6 +4,7 @@ main.py — the FastAPI web server.
 Endpoints so far:
   POST /upload   upload a .zip of a Python project, get back the dependency graph
   POST /impact   for one function: who calls it, what it calls, what could break
+  POST /explain  ask the AI to explain a function, or what breaks if it's deleted
 
 Run from backend/:
     uvicorn main:app --reload --port 8000
@@ -16,11 +17,13 @@ import shutil
 import tempfile
 import uuid
 import zipfile
+from typing import Literal
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+import assistant
 from extractor import extract_project
 from graph_builder import build_graph, get_impact, graph_to_json
 
@@ -118,3 +121,23 @@ def impact(request: NodeRequest):
     if request.node_id not in project["graph"]:
         raise HTTPException(404, f"Function not found: {request.node_id}")
     return get_impact(project["graph"], request.node_id)
+
+
+class ExplainRequest(BaseModel):
+    project_id: str
+    node_id: str
+    mode: Literal["explain", "impact"]   # "explain" = what does it do, "impact" = what breaks
+
+
+@app.post("/explain")
+async def explain(request: ExplainRequest):
+    project = PROJECTS.get(request.project_id)
+    if project is None:
+        raise HTTPException(404, "Project not found. Upload a .zip first.")
+    node = project["nodes"].get(request.node_id)
+    if node is None:
+        raise HTTPException(404, f"Function not found: {request.node_id}")
+    # The backend builds the AI's context itself from stored data.
+    impact_data = get_impact(project["graph"], request.node_id)
+    answer = await assistant.explain(node, impact_data, request.mode)
+    return {"answer": answer}
